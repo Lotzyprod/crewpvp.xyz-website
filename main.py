@@ -14,10 +14,10 @@ config.read("config.ini")
 try:
 	connection = mariadb.connect(host=config['database']['host'],user=config['database']['user'], password=config['database']['password'],database=config['database']['database'],port=config['database']['port'], autocommit=True)
 	now = datetime.now().strftime("[%d/%m/%Y %H:%M:%S]")
-	print(f'{now} Успешное подключение к базе данных')
+	print(f'{now} Connected to the database')
 except mariadb.Error as e:
 	now = datetime.now().strftime("[%d/%m/%Y %H:%M:%S]")
-	print(f'{now} Невозможно подключиться к базе данных: {e}')
+	print(f'{now} Cant connect to the database with reason: {e}')
 	sys.exit(1)
 
 
@@ -27,8 +27,7 @@ virtualPages = {}
 virtualPages = {
 	'home': {'name':'home','path':'/pages/home'},
 	'about': {'name':'about','path':'/pages/about'},
-	'terminal': {'name':'terminal','path':'/pages/terminal'},
-	'hell': {'name':'hell','path':'/pages/terminal'}
+	'terminal': {'name':'terminal','path':'/pages/terminal'}
 }
 
 
