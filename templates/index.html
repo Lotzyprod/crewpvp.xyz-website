@@ -1,0 +1,52 @@
+<html>
+	<head>
+	    <meta charset="UTF-8">
+	    <title>crewpvp.xyz</title>
+	    <meta name="viewport" content="width=device-width, initial-scale=0.8" >
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+	    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}" />
+	</head>
+
+	<body>
+	    <nav class="pages-nav">
+	    	{% for page in data['pages'] %} 
+	    		{{ page['nav'] | safe }} 
+	    	{% endfor %}
+	    </nav>
+		
+	    <div class="pages-stack">
+	    	{% for page in data['pages']%} 
+	    		{{ page['stack'] | safe }} 
+	    	{% endfor %}
+		</div>
+
+		<button id="menu_button" class="menu-button"><span>Menu</span></button>
+		
+
+	    <ul class="contextmenu">
+	        <li><a href="https://crewpvp.xyz/vkgroup">VK GROUP</a></li>
+	        <li><a href="https://crewpvp.xyz/ds">DISCORD</a></li>
+			<li><a href="https://crewpvp.xyz/yt">YOUTUBE</a></li>  
+	    </ul>
+	    
+	    <div id="page-preloader">
+	        <div class="loader">
+	            <div class="item-1"><span></span></div>
+	            <div class="item-2"><span></span></div>
+	            <div class="item-3"><span></span></div>
+	            <div class="item-4"><span></span></div>
+	            <div class="item-5"><span></span></div>
+	            <div class="item-6"><span></span></div>
+	            <div class="item-7"><span></span></div>
+	            <div class="item-8"><span></span></div>
+	        </div>
+	    </div>
+
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.min.js'></script>
+	    <script src="{{ url_for('static', filename='js/crew.js') }}"></script>
+	    {%for page in data['pages']%} 
+	    	{{ page['javascript'] | safe }} 
+	    {%endfor%}
+
+	</body>
+</html>
