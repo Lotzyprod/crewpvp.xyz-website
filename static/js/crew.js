@@ -145,16 +145,19 @@ class PagesStack {
   }
 
   addPage(page,nav) {
-    this.pagesTotal++;
+    
     document.querySelector('.pages-stack').innerHTML+=page;
     document.querySelector('.pages-nav').innerHTML+=nav;
     this.stack = document.querySelector('.pages-stack');
     this.pages = [].slice.call(this.stack.children);
     this.nav = document.querySelector('.pages-nav');
-    this.navItems = [].slice.call(nav.querySelectorAll('.link--page'));
+    this.navItems = [].slice.call(this.nav.querySelectorAll('.link--page'));
+    var stackPagesIdxs = this.getStackPagesIdxs();
+    var page = this.pages[stackPagesIdxs[this.pagesTotal]];
+    this.pagesTotal++;
     if (this.isMenuOpen) {
-      page.style.WebkitTransform = 'translate3d(0, 75%, ' + parseInt(-1 * 200 - 50*i) + 'px)'; 
-      page.style.transform = 'translate3d(0, 75%, ' + parseInt(-1 * 200 - 50*i) + 'px)';
+      page.style.WebkitTransform = 'translate3d(0, 75%, ' + parseInt(-1 * 200 - 50*this.pagesTotal) + 'px)'; 
+      page.style.transform = 'translate3d(0, 75%, ' + parseInt(-1 * 200 - 50*this.pagesTotal) + 'px)';
     }
   }
 
@@ -287,4 +290,7 @@ class PagesStack {
   }
 }
 
-var ps = new PagesStack(); 
+var ps = new PagesStack();
+setTimeout(() => {
+  ps.addPage("<div class=\"page\" id=\"{{name | safe}}\"><div id=\"container\"><header class=\"bp-header cf\"><h1 class=\"bp-header__title\">About Us</h1><p class=\"bp-header__desc\">community founded october 10, 2016 and still actively continues to function on the web and real life.<br>crewpvp unites people of different interests. crewpvp is alive.</p></header></div></div>","<div class=\"pages-nav__item\"><a class=\"link link--page\" href=\"#zalopa\">zalopa</a></div>")
+}, 10000);
