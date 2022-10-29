@@ -237,14 +237,14 @@ h1 {
     perspective-origin: 50% -50%
 }
 .js .page {
-    position: relative;
-    z-index: 5;
+    position: absolute;
     overflow: hidden;
     width: 100%;
     height: 100vh;
     pointer-events: auto;
     background: #2a2b30;
     box-shadow: 0 -1px 10px rgba(0, 0, 0, 0.1);
+    top: 0;
 }
 .js .pages-stack--open .page {
     cursor: pointer;
@@ -252,12 +252,6 @@ h1 {
     transition: transform 0.45s, opacity 0.45s;
     -webkit-transition-timing-function: cubic-bezier(0.6, 0, 0.4, 1);
     transition-timing-function: cubic-bezier(0.6, 0, 0.4, 1);
-}
-.js .page--inactive {
-    position: absolute;
-    z-index: 0;
-    top: 0;
-    opacity: 0;
 }
 
 .play-button {

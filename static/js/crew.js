@@ -112,185 +112,139 @@ function fadeOut(e,t) {
 window.addEventListener('load', function (e) { setTimeout(fadeOut(document.querySelector('#page-preloader'),50), 350); })
 
 class PagesStack {
-  constructor() {
-    this.support = { transitions: Modernizr.csstransitions };
-    this.transEndEventNames = { 'WebkitTransition': 'webkitTransitionEnd', 'MozTransition': 'transitionend', 'OTransition': 'oTransitionEnd', 'msTransition': 'MSTransitionEnd', 'transition': 'transitionend' };
-    this.transEndEventName = this.transEndEventNames[ Modernizr.prefixed( 'transition' ) ];
-    this.onEndTransition = ( el, callback ) => {
-      var onEndCallbackFn = ( ev ) => {
-        if( this.support.transitions ) {
-          if( ev.target != el ) return;
-          el.removeEventListener( this.transEndEventName, onEndCallbackFn );
+    constructor() {
+
+		this.support = { transitions: Modernizr.csstransitions };
+		this.transEndEventNames = { 'WebkitTransition': 'webkitTransitionEnd', 'MozTransition': 'transitionend', 'OTransition': 'oTransitionEnd', 'msTransition': 'MSTransitionEnd', 'transition': 'transitionend' };
+		this.transEndEventName = this.transEndEventNames[ Modernizr.prefixed( 'transition' ) ];
+		this.onEndTransition = ( el, callback ) => {
+			var onEndCallbackFn = ( ev ) => {
+				if( this.support.transitions ) {
+					if( ev.target != el ) return;
+					el.removeEventListener( this.transEndEventName, onEndCallbackFn );
+				}
+				if( callback && typeof callback === 'function' ) { callback.call(el); }
+			};
+			if( this.support.transitions ) {
+				el.addEventListener( this.transEndEventName, onEndCallbackFn );
+			} else {
+				onEndCallbackFn();
+			}
+		};
+
+		this.button = document.querySelector('button.menu-button');
+		this.button.addEventListener('click', ev => { this.toggle(); });
+		this.stack = document.querySelector('.pages-stack');
+		this.nav = document.querySelector('.pages-nav');
+        var pages = [].slice.call(this.stack.children);
+        var nav = [].slice.call(this.nav.querySelectorAll('.link--page'));
+        var ids = [];
+        pages.forEach(page => { ids.push(page.getAttribute('id')); });
+
+        this.opened = false;
+        this.dataStack = [];
+        this.totalPages = pages.length;
+        this.currentPage = 0;
+        for(var i = 0; i < this.totalPages; i++) {
+            this.dataStack.push([pages[i],nav[i],ids[i]]);
+            this.registerPage(i);
         }
-        if( callback && typeof callback === 'function' ) { callback.call(el); }
-      };
-      if( this.support.transitions ) {
-        el.addEventListener( this.transEndEventName, onEndCallbackFn );
-      }
-      else {
-        onEndCallbackFn();
-      }
-    };
-
-    this.stack = document.querySelector('.pages-stack');
-    this.pages = [].slice.call(this.stack.children);
-    this.pagesTotal = this.pages.length;
-    this.current = 0;
-    this.menuCtrl = document.querySelector('button.menu-button');
-    this.nav = document.querySelector('.pages-nav');
-    this.navItems = [].slice.call(this.nav.querySelectorAll('.link--page'));
-    this.isMenuOpen = false;
-    this.buildStack();
-    this.initEvents();
-  }
-
-  addPage(page,nav) {
-    
-    document.querySelector('.pages-stack').innerHTML+=page;
-    document.querySelector('.pages-nav').innerHTML+=nav;
-    this.stack = document.querySelector('.pages-stack');
-    this.pages = [].slice.call(this.stack.children);
-    this.nav = document.querySelector('.pages-nav');
-    this.navItems = [].slice.call(this.nav.querySelectorAll('.link--page'));
-    var stackPagesIdxs = this.getStackPagesIdxs();
-    var page = this.pages[stackPagesIdxs[this.pagesTotal]];
-    this.pagesTotal++;
-    if (this.isMenuOpen) {
-      page.style.WebkitTransform = 'translate3d(0, 75%, ' + parseInt(-1 * 200 - 50*this.pagesTotal) + 'px)'; 
-      page.style.transform = 'translate3d(0, 75%, ' + parseInt(-1 * 200 - 50*this.pagesTotal) + 'px)';
-    }
-  }
-
-  getStackPagesIdxs(excludePageIdx) {
-    var nextStackPageIdx = this.current + 1 < this.pagesTotal ? this.current + 1 : 0,
-      nextStackPageIdx_2 = this.current + 2 < this.pagesTotal ? this.current + 2 : 1,
-      idxs = [], excludeIdx = excludePageIdx || -1;
-
-    if( excludePageIdx != this.current ) {
-      idxs.push(this.current);
-    }
-    if( excludePageIdx != nextStackPageIdx ) {
-      idxs.push(nextStackPageIdx);
-    }
-    if( excludePageIdx != nextStackPageIdx_2 ) {
-      idxs.push(nextStackPageIdx_2);
-    }
-
-    return idxs;
-  }
-
-  buildStack() {
-    var stackPagesIdxs = this.getStackPagesIdxs();
-
-    for(var i = 0; i < this.pagesTotal; ++i) {
-      var page = this.pages[i],
-        posIdx = stackPagesIdxs.indexOf(i);
-
-      if( this.current !== i ) {
-        page.classList.add('page--inactive');
-
-        if( posIdx !== -1 ) {
-          page.style.WebkitTransform = 'translate3d(0,100%,0)';
-          page.style.transform = 'translate3d(0,100%,0)';
-        }
-        else {
-          page.style.WebkitTransform = 'translate3d(0,75%,-300px)';
-          page.style.transform = 'translate3d(0,75%,-300px)';   
-        }
-      }
-      else {
-        page.classList.remove('page--inactive');
-      }
-
-      page.style.zIndex = i < this.current ? parseInt(this.current - i) : parseInt(this.pagesTotal + this.current - i);
-      
-      if( posIdx !== -1 ) {
-        page.style.opacity = parseFloat(1 - 0.05 * posIdx);
-      }
-      else {
-        page.style.opacity = 0;
-      }
-    }
-  }
-
-  openPage(id) {
-    var futurePage = id ? document.getElementById(id) : this.pages[this.current],
-      futureCurrent = this.pages.indexOf(futurePage),
-      stackPagesIdxs = this.getStackPagesIdxs(futureCurrent);
-
-    futurePage.style.WebkitTransform = 'translate3d(0, 0, 0)';
-    futurePage.style.transform = 'translate3d(0, 0, 0)';
-    futurePage.style.opacity = 1;
-
-    for(var i = 0, len = stackPagesIdxs.length; i < len; ++i) {
-      var page = this.pages[stackPagesIdxs[i]];
-      page.style.WebkitTransform = 'translate3d(0,100%,0)';
-      page.style.transform = 'translate3d(0,100%,0)';
-    }
-
-    if( id ) {
-      this.current = futureCurrent;
     }
     
-    this.menuCtrl.classList.remove('menu-button--open');
-    this.nav.classList.remove('pages-nav--open');
-    this.onEndTransition(futurePage, ev => {
-      this.stack.classList.remove('pages-stack--open');
-      this.buildStack();
-      this.isMenuOpen = false;
-    });
-  }
-
-  openMenu() {
-    this.menuCtrl.classList.add('menu-button--open');
-    this.stack.classList.add('pages-stack--open');
-    this.nav.classList.add('pages-nav--open');
-
-    var stackPagesIdxs = this.getStackPagesIdxs();
-    for(var i = 0, len = stackPagesIdxs.length; i < len; ++i) {
-      var page = this.pages[stackPagesIdxs[i]];
-      page.style.WebkitTransform = 'translate3d(0, 75%, ' + parseInt(-1 * 200 - 50*i) + 'px)'; 
-      page.style.transform = 'translate3d(0, 75%, ' + parseInt(-1 * 200 - 50*i) + 'px)';
-    }
-  }
-
-  closeMenu() {
-    this.openPage();
-  }
-
-  toggleMenu() {
-    if( this.isMenuOpen ) {
-      this.closeMenu();
-    } else {
-      this.openMenu();
-      this.isMenuOpen = true;
-    }
-  }
-
-  initEvents() {
-    this.menuCtrl.addEventListener('click', this.toggleMenu.bind(this));
-
-    this.navItems.forEach(item => {
-      var pageid = item.getAttribute('href').slice(1);
-      item.addEventListener('click', ev => {
-        ev.preventDefault();
-        this.openPage(pageid);
-      });
-    });
-
-    this.pages.forEach(page => {
-      var pageid = page.getAttribute('id');
-      page.addEventListener('click', ev => {
-        if( this.isMenuOpen ) {
-          ev.preventDefault();
-          this.openPage(pageid);
+    getPageById(id) {
+        for(var stack in this.dataStack) {
+            if (stack[2] == id) {
+                return stack[2];
+            }
         }
-      });
-    });
-  }
+        return;
+    }
+    
+    addPage(page) {
+    	this.stack.insertAdjacentHTML('beforeend',page);
+    	page = this.stack.children[this.totalPages];
+    	var id = page.getAttribute('id');
+    	this.nav.insertAdjacentHTML('beforeend',('<div class=\"pages-nav__item\"><a class=\"link link--page\" href=\"#'+id+'\">'+id+'</a></div>'));
+        var nav = this.nav.querySelectorAll('.link--page')[this.totalPages];
+        this.dataStack.push([page,nav,id]);
+        this.registerPage(this.totalPages);
+        this.totalPages++;
+    }
+
+    registerPage(i) {
+        this.dataStack[i][1].addEventListener('click', ev => {
+            ev.preventDefault();
+            this.openPage(i);
+        });
+        this.dataStack[i][0].addEventListener('click', ev => {
+            if( this.opened ) {
+                ev.preventDefault();
+                this.openPage(i);
+            }
+        });
+        if (i == this.currentPage) {
+            this.dataStack[i][0].style.WebkitTransform = 'translate3d(0, 0, 0)'; 
+            this.dataStack[i][0].style.transform = 'translate3d(0, 0, 0)';
+            this.dataStack[i][0].style.zIndex = 0;
+        } else {
+        	this.dataStack[i][0].style.WebkitTransform = 'translate3d(0, 75%, ' + parseInt(-1 * 200 - 50*i) + 'px)'; 
+            this.dataStack[i][0].style.transform = 'translate3d(0, 75%, ' + parseInt(-1 * 200 - 50*i) + 'px)';
+            this.dataStack[i][0].style.zIndex = -i;
+        }
+    }
+    
+    openPage(index) {
+        var c = 1;
+        for(var i = 0; i<this.totalPages; i++) {
+            if (i == index) {
+                this.dataStack[i][0].style.WebkitTransform = 'translate3d(0, 0, 0)'; 
+                this.dataStack[i][0].style.transform = 'translate3d(0, 0, 0)';
+                this.dataStack[i][0].style.zIndex = 0;
+            } else {
+                this.dataStack[i][0].style.WebkitTransform = 'translate3d(0, 75%, ' + parseInt(-1 * 200 - 50*c) + 'px)'; 
+                this.dataStack[i][0].style.transform = 'translate3d(0, 75%, ' + parseInt(-1 * 200 - 50*c) + 'px)';
+                this.dataStack[i][0].style.zIndex = -c;
+                c++;
+            }
+        }
+        this.button.classList.remove('menu-button--open');
+        this.nav.classList.remove('pages-nav--open');
+		this.onEndTransition(this.dataStack[index][0], ev => {
+			this.stack.classList.remove('pages-stack--open');
+			this.opened = false;
+			this.currentPage = index;
+		});
+    }
+
+    toggle() {
+    	if (this.opened) {
+    		this.openPage(this.currentPage);
+    	} else {
+    		this.openMenu();
+    	}
+    }
+
+    openMenu() {
+    	this.button.classList.add('menu-button--open');
+    	this.stack.classList.add('pages-stack--open');
+    	this.nav.classList.add('pages-nav--open');
+    	this.opened = true;
+        var c = 1;
+        for(var i = 0; i<this.totalPages; i++) {
+            if (i == this.currentPage) {
+                this.dataStack[i][0].style.WebkitTransform = 'translate3d(0, 75%, ' + parseInt(-1 * 200) + 'px)'; 
+                this.dataStack[i][0].style.transform = 'translate3d(0, 75%, ' + parseInt(-1 * 200) + 'px)';
+                this.dataStack[i][0].style.zIndex = 0;
+            } else {
+                this.dataStack[i][0].style.WebkitTransform = 'translate3d(0, 75%, ' + parseInt(-1 * 200 - 50*c) + 'px)'; 
+                this.dataStack[i][0].style.transform = 'translate3d(0, 75%, ' + parseInt(-1 * 200 - 50*c) + 'px)';
+                this.dataStack[i][0].style.zIndex = -c;
+                c++;
+
+            }
+        } 
+    }
+    
 }
 
 var ps = new PagesStack();
-setTimeout(() => {
-  ps.addPage("<div class=\"page\" id=\"{{name | safe}}\"><div id=\"container\"><header class=\"bp-header cf\"><h1 class=\"bp-header__title\">About Us</h1><p class=\"bp-header__desc\">community founded october 10, 2016 and still actively continues to function on the web and real life.<br>crewpvp unites people of different interests. crewpvp is alive.</p></header></div></div>","<div class=\"pages-nav__item\"><a class=\"link link--page\" href=\"#zalopa\">zalopa</a></div>")
-}, 10000);
