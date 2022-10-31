@@ -3,6 +3,28 @@ html.js,
     overflow: hidden;
     height: 100vh;
 }
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #b95;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: #b95;
+  border-radius: 5px;
+  -webkit-box-shadow: 0 0 4px rgba(255, 255, 255, .3);
+  -moz-box-shadow: 0 0 4px rgba(255, 255, 255, .3);
+  box-shadow: 0 0 4px rgba(255, 255, 255, .3);
+}
+
 .terminal {
   text-shadow: 0 0 8px rgba(255, 255, 255, .3);
   color: #b95;

@@ -19,23 +19,20 @@ config.read("config.ini")
 #	now = datetime.now().strftime("[%d/%m/%Y %H:%M:%S]")
 #	print(f'{now} Cant connect to the database with reason: {e}')
 #	sys.exit(1)
-
-
-virtualPages = {}
-
+hostname = "http://127.0.0.1:5000"
 
 virtualPages = {
-	'home': {'name':'home','path':'/pages/home'},
-	'about': {'name':'about','path':'/pages/about'},
-	'terminal': {'name':'terminal','path':'/pages/terminal'}
+	'home': {'name':'home','path':'/pages/home-stack.html', 'data': None},
+	'about': {'name':'about','path':'/pages/about-stack.html', 'data': None},
+	'terminal': {'name':'terminal','path':'/pages/terminal-stack.html', 'data': {'hostname':hostname}},
+	'board': {'name':'board','path':'/pages/board-stack.html', 'data': {'hostname':hostname}}
 }
 
 
 def virtualPage(id):
 	return {
 		'nav': f'<div class="pages-nav__item"><a class="link link--page" href="#{id["name"]}">{id["name"]}</a></div>',
-		'stack':render_template(id['path']+'-stack.html',name=id['name']),
-		'javascript':render_template(id['path']+'.js')
+		'stack':render_template(id['path'],name=id['name'],data=id['data']),
 		}
 
 @app.route("/")
