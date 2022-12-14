@@ -8,9 +8,17 @@
 	</head>
 
 	<body>
-		<script src='https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.min.js'></script>
+		<script src="{{ url_for('static', filename='js/modernizr.js') }}"></script>
 	    <script src="{{ url_for('static', filename='js/clib.js') }}"></script>
+	    <button id="menu_button" class="menu-button"><span>Menu</span></button>
+		
 
+	    <ul class="contextmenu">
+	        <li><a href="https://crewpvp.xyz/vkgroup">VK GROUP</a></li>
+	        <li><a href="https://crewpvp.xyz/ds">DISCORD</a></li>
+			<li><a href="https://crewpvp.xyz/yt">YOUTUBE</a></li>
+			<li><a id="close_page">CLOSE PAGE</a></li>  
+	    </ul>
 
 	    <nav class="pages-nav">
 	    	{% for page in data['pages'] %} 
@@ -23,15 +31,6 @@
 	    		{{ page['stack'] | safe }} 
 	    	{% endfor %}
 		</div>
-		
-		<button id="menu_button" class="menu-button"><span>Menu</span></button>
-		
-
-	    <ul class="contextmenu">
-	        <li><a href="https://crewpvp.xyz/vkgroup">VK GROUP</a></li>
-	        <li><a href="https://crewpvp.xyz/ds">DISCORD</a></li>
-			<li><a href="https://crewpvp.xyz/yt">YOUTUBE</a></li>  
-	    </ul>
 	    
 	    <div id="page-preloader">
 	        <div class="loader">

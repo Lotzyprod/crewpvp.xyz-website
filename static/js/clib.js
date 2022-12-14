@@ -1,8 +1,3 @@
-async function fetchAsync (url) {
-  let response = await fetch(url);
-  return await response.text();
-}
-
 class TextScramble {
   constructor(el) {
     this.el = el
@@ -98,7 +93,7 @@ class PagesStack {
 		this.stack = document.querySelector('.pages-stack');
 		this.nav = document.querySelector('.pages-nav');
         var pages = [].slice.call(this.stack.children);
-        var nav = [].slice.call(this.nav.querySelectorAll('.link--page'));
+        var nav = [].slice.call(this.nav.querySelectorAll('.pages-nav__item'));
         var ids = [];
         pages.forEach(page => { ids.push(page.getAttribute('id')); });
 
@@ -112,35 +107,48 @@ class PagesStack {
         }
     }
     
-    getPageById(id) {
-        for(var stack in this.dataStack) {
-            if (stack[2] == id) {
-                return stack[2];
-            }
-        }
-        return;
+    getStackIdById(id) {
+    	for(var i=0; i<this.totalPages; i++) {
+    		if (this.dataStack[i][2] == id) {
+    			return i;
+    		}
+    	}
     }
     
     addPage(page) {
     	this.stack.insertAdjacentHTML('beforeend',page);
     	page = this.stack.children[this.totalPages];
     	var id = page.getAttribute('id');
-    	this.nav.insertAdjacentHTML('beforeend',('<div class=\"pages-nav__item\"><a class=\"link link--page\" href=\"#'+id+'\">'+id+'</a></div>'));
-        var nav = this.nav.querySelectorAll('.link--page')[this.totalPages];
+    	this.nav.insertAdjacentHTML('beforeend',('<div class=\"pages-nav__item\" id=\"'+id+'\"><a class=\"link link--page\" href=\"#'+id+'\">'+id+'</a></div>'));
+        var nav = this.nav.querySelectorAll('.pages-nav__item')[this.totalPages];
         this.dataStack.push([page,nav,id]);
         this.registerPage(this.totalPages);
         this.totalPages++;
     }
-
+    removePage(id) {
+    	for(var i = 0; i<this.totalPages; i++) {
+            if (this.dataStack[i][2] == id) {
+            	this.dataStack[i][1].remove();
+                if (!this.opened) {
+		    		this.openMenu();
+		    	}
+                this.dataStack[i][0].remove();
+                this.dataStack.splice(i,1);
+                break;
+            }
+        }
+    	this.totalPages--;
+    }
     registerPage(i) {
         this.dataStack[i][1].addEventListener('click', ev => {
             ev.preventDefault();
-            this.openPage(i);
+            this.openPage(this.getStackIdById(event.currentTarget.id));
+
         });
         this.dataStack[i][0].addEventListener('click', ev => {
             if( this.opened ) {
                 ev.preventDefault();
-                this.openPage(i);
+                this.openPage(this.getStackIdById(event.currentTarget.id));
             }
         });
         if (i == this.currentPage) {
@@ -184,7 +192,12 @@ class PagesStack {
     		this.openMenu();
     	}
     }
-
+    getPagesIds() {
+    	let pages = [];
+    	this.dataStack.forEach(stack => { pages.push(stack[2]); });
+    	return pages;
+    }
+    isOpened() { return this.opened; }
     openMenu() {
     	this.button.classList.add('menu-button--open');
     	this.stack.classList.add('pages-stack--open');
@@ -204,6 +217,20 @@ class PagesStack {
 
             }
         } 
-    }
-    
+    }  
 }
+
+/* class ContextMenu {
+	constructor() {
+
+	}
+	addElement() {
+
+	}
+	removeElement() {
+
+	}
+	toggle() {
+		
+	}
+} */
