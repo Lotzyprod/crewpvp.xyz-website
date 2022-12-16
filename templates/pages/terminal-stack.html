@@ -1,4 +1,43 @@
 <div class="page" id="{{name | safe}}">
+	<style>
+		.terminal {
+		  text-shadow: 0 0 8px rgba(255, 255, 255, .3);
+		  color: #b95;
+		  background: 0 0;
+		  font-size: 1em;
+		  margin: .5em 0 1em;
+		  padding: 0;
+		  font-family: Consolas, monospace;
+		  height: 70vh;
+		  overflow: hidden;
+		  letter-spacing: 2px;
+		  text-overflow: ellipsis;
+		}
+		.terminal-line {
+		  display: table;
+		  width: 100%;
+		}
+		.terminal span {
+		  display: table-cell;
+		  width: 1px;
+		}
+
+		.terminal input {
+		  text-shadow: 0 0 8px rgba(255, 255, 255, .3);
+		  color: #b95;
+		  background: 0 0;
+		  font-size: 1em;
+		  font-family: Consolas, monospace;
+		  overflow: hidden;
+		  letter-spacing: 2px;
+		  text-overflow: ellipsis;
+		  display: table-cell;
+		  width: 100%;
+		  border: none;
+		  outline: 0;
+		}
+	</style>
+
 	<header class="bp-header cf">
 		<h1 class="bp-header__title">Terminal</h1>
 		<div class="terminal">
@@ -9,6 +48,7 @@
 			</div>
 		</div>
 	</header>
+
 	<script type="text/javascript">
 		document.querySelector('#path').textContent = 'user@crewpvp~$\xa0';
 		document.querySelector('#input').addEventListener('keydown', async e => {
@@ -41,6 +81,8 @@
 						if (ps.getPagesIds().indexOf(page)<0) {
 							try {
 								let response = await fetch('{{ data['hostname'] | safe}}/api/pages/'+page);
+								if (!response.ok) throw new Error(response.statusText);
+
 								response = await response.json();
 								ps.addPage(response.stack);
 								history.innerHTML += "Page "+page+" opened<br>";

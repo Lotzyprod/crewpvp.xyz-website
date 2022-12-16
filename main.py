@@ -15,6 +15,7 @@ def init_tables(connection):
 	cursor = connection.cursor()
 	try:
 		cursor.execute('CREATE TABLE IF NOT EXISTS site_metric (address VARCHAR(15),last_join INT(11) NOT NULL DEFAULT UNIX_TIMESTAMP(), CONSTRAINT address PRIMARY KEY (address))')
+		cursor.execute('CREATE TABLE IF NOT EXISTS site_imageboard (id INT NOT NULL AUTO_INCREMENT, address VARCHAR(15) NOT NULL,date INT(11) NOT NULL DEFAULT UNIX_TIMESTAMP(), content TEXT NOT NULL, CONSTRAINT id PRIMARY KEY (id))')
 	except mariadb.Error as e:
 		print(f'Can\'t init tables: {e}')
 		sys.exit(1)
@@ -33,7 +34,8 @@ virtualPages = {
 	'home': {'name':'home','path':'/pages/home-stack.html', 'data': None},
 	'about': {'name':'about','path':'/pages/about-stack.html', 'data': None},
 	'terminal': {'name':'terminal','path':'/pages/terminal-stack.html', 'data': {'hostname':hostname}},
-	'board': {'name':'board','path':'/pages/board-stack.html', 'data': {'hostname':hostname}}
+	'board': {'name':'board','path':'/pages/board-stack.html', 'data': {'hostname':hostname}},
+	'404': {'name':'404','path':'/pages/404.html', 'data': None}
 }
 
 def metric(address):
@@ -80,9 +82,36 @@ def get_metrics():
 	cursor.close()
 	return jsonify(resp),200
 
+@app.route("/api/board/add/<text>")
+def add_to_board(text):
+	text = " ".join(text.split())
+	if (text==""):
+		return jsonify({'message':f'Empty text!'}),400
+	cursor = connection.cursor()
+	cursor.execute(f'SELECT id FROM site_imageboard WHERE address=\'{request.remote_addr}\' AND date+3600>UNIX_TIMESTAMP() ORDER BY id DESC LIMIT 1')
+	if(not cursor.fetchone()):
+		cursor.execute(f'INSERT INTO site_imageboard (address,content) VALUES (\'{request.remote_addr}\',?)',(text,))
+		cursor.close()
+		return jsonify({'message':f'Successfully posted new thread!'}),200
+	else:
+		cursor.close()
+		return jsonify({'message':f'You can make new thread only once a hour!'}),400
+	
+@app.route("/api/board/<int:page>", methods = ['GET'])
+def get_board(page):
+	cursor = connection.cursor()
+	cursor.execute(f'SELECT content,date FROM site_imageboard ORDER BY id DESC LIMIT {(page-1)*10}, 10')
+	data = cursor.fetchall()
+	cursor.close()
+	if (data):
+		data = [{'content':content,'date':date} for content,date in data]
+		return jsonify(data),200
+	return jsonify({'message':f'No one thread older'}),400
+
 @app.errorhandler(404)
 def page_not_found(e):
-	return render_template('404.html'), 404
+	pages = [virtualPage(virtualPages['404']), virtualPage(virtualPages['terminal'])]
+	return render_template("index.html", data={'pages':pages}),404
 
 app.run()
 

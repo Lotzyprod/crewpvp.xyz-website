@@ -1,8 +1,177 @@
-<div class="page" id="{{name | safe}}">
+<div class="page page-closable" id="{{name | safe}}">
+    <style>
+    	.board-textarea {
+    	  padding: 5px;
+		  display: block;
+		  width: 100%;
+		  overflow: hidden;
+		  resize: height;
+		  min-height: 40px;
+		  line-height: 20px;
+		  outline: none;
+		  border-radius: 10px;
+		  border-width: thick;
+		  border-color: #b95;
+		  border: solid;
+		}
+		.board-loadmore {
+		    width: 100%;
+		    height: 50px;
+		    border: none;
+		    outline: none;
+		    color: #fff;
+		    background: #b95;
+		    cursor: pointer;
+		    position: relative;
+		    z-index: 0;
+		    border-radius: 10px;
+
+		}
+
+		.board-loadmore:before {
+		    content: '';
+		    background: linear-gradient(45deg, #fff,#eee,#ddd,#bbb,#ddd,#eee,#fff);
+		    position: absolute;
+		    top: -2px;
+		    left:-2px;
+		    background-size: 400%;
+		    z-index: -1;
+		    filter: blur(5px);
+		    width: calc(100% + 4px);
+		    height: calc(100% + 4px);
+		    animation: glowing 20s linear infinite;
+		    opacity: 0;
+		    transition: opacity .3s ease-in-out;
+		    border-radius: 10px;
+		}
+
+		.board-loadmore:active {
+		    color: #000;
+		}
+
+		.board-loadmore:active:after {
+		    background: transparent;
+
+		}
+
+		.board-loadmore:hover:before {
+		    opacity: 1;
+		}
+
+		.board-loadmore:after {
+		    z-index: -1;
+		    content: '';
+		    position: absolute;
+		    width: 100%;
+		    height: 100%;
+		    background: #b95;
+		    left: 0;
+		    top: 0;
+		    border-radius: 10px;
+		}
+
+		@keyframes glowing {
+		    0% { background-position: 0 0; }
+		    50% { background-position: 400% 0; }
+		    100% { background-position: 0 0; }
+		}
+
+		.board-post-container {
+		  width: 100%;
+		  padding: 10px;
+		}
+		.board-post-container .new-post {
+		  height: auto;
+		}
+		.board-post-container .new-post .user_comment {
+		  list-style-type: none;
+
+		}
+		.board-post-container .new-post .comment_body {
+		  display: inline-block;
+		  vertical-align: middle;
+		  width: 100%;
+		  min-height: 35px;
+		  font-size: 1.2rem;
+		  color: #fff;
+		  border-bottom: 2px solid #b95;
+		}
+		.board-post-container .new-post .comment_toolbar ul {
+		  list-style-type: none;
+		  font-size: 0;
+		}
+		.board-post-container .new-post .comment_toolbar ul li {
+		  display: inline-block;
+		  padding: 5px;
+		  font-size: 0.9rem;
+		  color: #a84;
+		}
+		.board-post-container .new-post .comment_toolbar .comment_details {
+		  display: inline-block;
+		  vertical-align: middle;
+		  width: 100%;
+		  text-align: right;
+		}
+	</style>
     <div id="container" style ='overflow-y: scroll;'>
         <header class="bp-header cf">
             <h1 class="bp-header__title">Image board</h1>
             <p class="bp-header__desc">There you can write something, this will be saved on site</p>
+            <span id="board_textarea" class="board-textarea" role="textbox" contenteditable></span>
+            <div class="board-post-container" id="board_history"></div>
+			<button class="board-loadmore" type="button">LOAD MORE</button>
 		</header>
     </div>
+
+    <script type="text/javascript">
+		async function load_posts(page) {
+			try {
+				let response = await fetch('{{ data['hostname'] | safe}}/api/board/'+page);
+				if (!response.ok) throw new Error(response.statusText);
+				response = await response.json();
+				let posts = []
+				for (var post in response) {
+					date = new Date(response[post]['date']*1000).toLocaleString().split(', ')
+					posts.push('<div class="new-post">'+
+						'<ul class="user_comment">'+
+						'<div class="comment_body"><p>'+
+						response[post]['content']+
+						'</p></div><div class="comment_toolbar">'+
+						'<div class="comment_details"><ul>'+
+						'<li>'+date[0]+'</li><li>'+date[1]+'</li>'+
+						'</ul></div></div></ul></div>');
+				}
+				return posts;
+			} catch(err) {
+				return null;
+			}
+		}
+		var boardpage = 1;
+		(async() => {
+			var posts = await load_posts(1);
+			if (posts) { 
+				document.querySelector('#board_history').innerHTML+=posts.join('');
+				boardpage+=1;
+			}
+		})();
+		document.querySelector('.board-loadmore').addEventListener('click', async e => {
+			var posts = await load_posts(boardpage);
+			if (posts) {
+				document.querySelector('#board_history').innerHTML+=posts.join('');
+				boardpage+=1;
+			} else {
+				document.querySelector('.board-loadmore').innerHTML='No one more posts behind';
+			}
+		});
+		document.querySelector('.board-textarea').addEventListener('keydown', async e => {
+			let textarea = document.querySelector('.board-textarea');
+			if(e.keyCode === 13) {
+				let text = textarea.innerText;
+				if(text.replace(/\s/g, "X")!=''){
+					await fetch('{{ data['hostname'] | safe}}/api/board/add/'+text);
+				}
+				textarea.innerText = "";
+			}
+		});
+	</script>
 </div>
