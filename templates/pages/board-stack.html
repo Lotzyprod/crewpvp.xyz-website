@@ -168,7 +168,18 @@
 			if(e.keyCode === 13) {
 				let text = textarea.innerText;
 				if(text.replace(/\s/g, "X")!=''){
-					await fetch('{{ data['hostname'] | safe}}/api/board/add/'+text);
+					response = await fetch('{{ data['hostname'] | safe}}/api/board/add/'+text);
+					if (response.ok) {
+						text = text.split(' ').join(' ');
+						date = new Date(Date.now()).toLocaleString().split(', ');
+						document.querySelector('#board_history').innerHTML = '<div class="new-post">'+
+						'<ul class="user_comment">'+
+						'<div class="comment_body"><p>'+
+						text+'</p></div><div class="comment_toolbar">'+
+						'<div class="comment_details"><ul>'+
+						'<li>'+date[0]+'</li><li>'+date[1]+'</li>'+
+						'</ul></div></div></ul></div>'+document.querySelector('#board_history').innerHTML;
+					}
 				}
 				textarea.innerText = "";
 			}
