@@ -115,11 +115,14 @@ class PagesStack {
     	}
     }
     
-    addPage(page) {
+    addPage(page,js) {
     	this.stack.insertAdjacentHTML('beforeend',page);
     	page = this.stack.children[this.totalPages];
     	var id = page.getAttribute('id');
     	this.nav.insertAdjacentHTML('beforeend',('<div class=\"pages-nav__item\" id=\"'+id+'\"><a class=\"link link--page\" href=\"#'+id+'\">'+id+'</a></div>'));
+        var scr = document.createElement('script');
+        scr.textContent = js;
+        document.body.appendChild(scr);
         var nav = this.nav.querySelectorAll('.pages-nav__item')[this.totalPages];
         this.dataStack.push([page,nav,id]);
         this.registerPage(this.totalPages);

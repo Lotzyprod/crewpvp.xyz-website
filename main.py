@@ -31,11 +31,11 @@ except mariadb.Error as e:
 
 hostname = "http://127.0.0.1:5000"
 virtualPages = {
-	'home': {'name':'home','path':'/pages/home-stack.html', 'data': None},
-	'about': {'name':'about','path':'/pages/about-stack.html', 'data': None},
-	'terminal': {'name':'terminal','path':'/pages/terminal-stack.html', 'data': {'hostname':hostname}},
-	'board': {'name':'board','path':'/pages/board-stack.html', 'data': {'hostname':hostname}},
-	'404': {'name':'404','path':'/pages/404.html', 'data': None}
+	'home': {'name':'home','html':'/pages/home.html','js':'/pages/home.js', 'data': None},
+	'about': {'name':'about','html':'/pages/about.html','js':'/pages/about.js', 'data': None},
+	'terminal': {'name':'terminal','html':'/pages/terminal.html','js':'/pages/terminal.js', 'data': {'hostname':hostname}},
+	'board': {'name':'board','html':'/pages/board.html','js':'/pages/board.js', 'data': {'hostname':hostname}},
+	'404': {'name':'404','html':'/pages/404.html','js':'/pages/404.js', 'data': None}
 }
 
 def metric(address):
@@ -43,10 +43,14 @@ def metric(address):
 	cursor.execute(f'INSERT INTO site_metric (address) VALUES (\'{address}\') ON DUPLICATE KEY UPDATE last_join=UNIX_TIMESTAMP()')
 	cursor.close()
 
-def virtualPage(id):
-	return {
-		'nav': f'<div class="pages-nav__item" id="{id["name"]}"><a class="link link--page" href="#{id["name"]}">{id["name"]}</a></div>',
-		'stack':render_template(id['path'],name=id['name'],data=id['data']),
+def virtualPage(id, includejs):
+	if includejs: 
+		return {
+			'nav': f'<div class="pages-nav__item" id="{id["name"]}"><a class="link link--page" href="#{id["name"]}">{id["name"]}</a></div>',
+			'stack':render_template(id['html'],name=id['name'],data=id['data'],javascript='<script type=\'text/javascript\'>'+render_template(id['js'],name=id['name'],data=id['data'])+'</script>') }
+	return { 'nav': f'<div class="pages-nav__item" id="{id["name"]}"><a class="link link--page" href="#{id["name"]}">{id["name"]}</a></div>',
+			'stack':render_template(id['html'],name=id['name'],data=id['data']),
+			'js':render_template(id['js'],name=id['name'],data=id['data'])
 		}
 
 @app.route("/")
@@ -54,9 +58,9 @@ def home():
 	metric(request.remote_addr)
 	args = request.args.getlist("pages")
 	if (args):
-		pages = [virtualPage(virtualPages[page]) for page in args if page in virtualPages]
+		pages = [virtualPage(virtualPages[page],True) for page in args if page in virtualPages]
 	else:
-		pages = [virtualPage(virtualPages['home']), virtualPage(virtualPages['about']), virtualPage(virtualPages['terminal'])]
+		pages = [virtualPage(virtualPages['home'],True), virtualPage(virtualPages['about'],True), virtualPage(virtualPages['terminal'],True)]
 	return render_template("index.html", data={'pages':pages})
 
 @app.route("/api/pages")
@@ -66,7 +70,7 @@ def get_pages():
 @app.route("/api/pages/<page>", methods = ['GET'])
 def get_page(page):
 	if virtualPages.get(page):
-		return jsonify(virtualPage(virtualPages[page])),200
+		return jsonify(virtualPage(virtualPages[page],False)),200
 	return jsonify({'message':f'page "{page}" doesn\'t exists'}),400
 
 @app.route("/api/metrics")
@@ -110,7 +114,7 @@ def get_board(page):
 
 @app.errorhandler(404)
 def page_not_found(e):
-	pages = [virtualPage(virtualPages['404']), virtualPage(virtualPages['terminal'])]
+	pages = [virtualPage(virtualPages['404'],True), virtualPage(virtualPages['terminal']),True]
 	return render_template("index.html", data={'pages':pages}),404
 
 app.run()
